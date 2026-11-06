@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  password  String
+  role      String     @default("customer") // customer | admin
+  orders    Order[]
+  reviews   Review[]
+  wishlists Wishlist[]
+  createdAt DateTime   @default(now())
+}
+
+model Product {
+  id        Int         @id @default(autoincrement())
+  name      String
+  desc      String
+  price     Float
+  category  String
+  imageUrl  String
+  images    String?     // JSON array of image URLs (stringified)
+  stock     Int         @default(15)
+  variants  String?     // JSON array of variants, e.g. ["S", "M", "L"]
+  orders    OrderItem[]
+  reviews   Review[]
+  wishlists Wishlist[]
+  createdAt DateTime    @default(now())
+}
+
+model Order {
+  id            Int         @id @default(autoincrement())
+  user          User        @relation(fields: [userId], references: [id])
+  userId        Int
+  createdAt     DateTime    @default(now())
+  items         OrderItem[]
+  name          String
+  address       String
+  phone         String
+  status        String      @default("pending") // pending | confirmed | shipped | delivered | cancelled
+  paymentMethod String      @default("cash")    // cash | card
+  discount      Float       @default(0)
+  total         Float       @default(0)
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   Int
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int
+  price     Float    @default(0)
+  variant   String?
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int      @default(5) // 1 to 5
+  comment   String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  createdAt DateTime @default(now())
+}
+
+model Wishlist {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Coupon {
+  id              Int      @id @default(autoincrement())
+  code            String   @unique
+  discountPercent Float?   // e.g. 15 for 15%
+  discountAmount  Float?   // e.g. 10 for 10 AZN off
+  minOrderAmount  Float    @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+}

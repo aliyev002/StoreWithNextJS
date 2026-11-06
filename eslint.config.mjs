@@ -9,6 +9,14 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [...compat.extends("next/core-web-vitals")];
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals"),
+  {
+    rules: {
+      // Şəkillər xarici URL-dən gəldiyi üçün next/image istifadəsi məcburi deyil
+      "@next/next/no-img-element": "off",
+    },
+  },
+];
 
 export default eslintConfig;
